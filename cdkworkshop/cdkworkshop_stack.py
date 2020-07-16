@@ -4,13 +4,16 @@ from aws_cdk import (
     aws_apigateway as apigw,
 )
 
+from cdk_dynamo_table_viewer import TableViewer
 from hitcounter import HitCounter
+
 
 class CdkworkshopStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        # Defines an AWS Lambda resource
         my_lambda = _lambda.Function(
             self, 'HelloHandler',
             runtime=_lambda.Runtime.PYTHON_3_7,
@@ -19,10 +22,17 @@ class CdkworkshopStack(core.Stack):
         )
 
         hello_with_counter = HitCounter(
-            self, "HelloHitCounter",
+            self, 'HelloHitCounter',
             downstream=my_lambda,
         )
+
         apigw.LambdaRestApi(
-            self, "Endpoint",
+            self, 'Endpoint',
             handler=hello_with_counter.handler,
+        )
+
+        TableViewer(
+            self, 'ViewHitCounter',
+            title='Hello Hits',
+            table=hello_with_counter.table,
         )
